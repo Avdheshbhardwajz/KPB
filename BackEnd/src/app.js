@@ -6,9 +6,8 @@ import dotenv from 'dotenv'
 const app = express();
 
 dotenv.config({
-    path: ".env"
+    path: "./env"
 })
-
 const corsarry = [
     process.env.CORS_ORIGIN1,
     process.env.CORS_ORIGIN2,
@@ -33,14 +32,13 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("Public"))
 app.use(cookieParser())
-app.get("/checkhealthstatus", (req,res)=>{
-    res.json({"MSG ": "Good"})
-});
 
 // routes import 
-
+import userRouter from "./routes/user.routes.js"
+import AdminRouter from "./routes/Admin.user.routes.js"
 
 // routes declaration
-
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/Admin', AdminRouter);
 
 export { app }
