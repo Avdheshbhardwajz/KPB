@@ -21,20 +21,20 @@ export const createProduct = async (req, res) => {
       description,
       price,
       category,
-      images: imageUrls, 
+      images: imageUrls,
       stock,
     });
 
-    res.status(201).json({ 
-      success: true, 
-      message: 'Product created successfully', 
-      product: newProduct 
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully',
+      product: newProduct
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
     });
   }
 };
@@ -42,12 +42,27 @@ export const createProduct = async (req, res) => {
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Public
+// @desc    Get all products
+// @route   GET /api/products
+// @access  Public
 export const getAllProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 10, sort = '-createdAt', category } = req.query;
+    const { page = 1, limit = 10, sort = '-createdAt', category, minPrice, maxPrice } = req.query;
 
-    const query = category ? { category } : {}; // Filter by category if provided
+    // Build query object for filtering
+    const query = {};
 
+    if (category) {
+      query.category = category; // Filter by category if provided
+    }
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = minPrice; // Filter products with price greater than or equal to minPrice
+      if (maxPrice) query.price.$lte = maxPrice; // Filter products with price less than or equal to maxPrice
+    }
+
+    // Fetch products with pagination and filtering
     const products = await Product.find(query)
       .sort(sort)
       .skip((page - 1) * limit)
@@ -63,13 +78,14 @@ export const getAllProducts = async (req, res) => {
       products,
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
     });
   }
 };
+
 
 // @desc    Get a single product by ID
 // @route   GET /api/products/:id
@@ -80,21 +96,21 @@ export const getProductById = async (req, res) => {
     const product = await Product.findById(id).populate('category');
 
     if (!product) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Product not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
       });
     }
 
-    res.status(200).json({ 
-      success: true, 
-      product 
+    res.status(200).json({
+      success: true,
+      product
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
     });
   }
 };
@@ -111,9 +127,9 @@ export const updateProduct = async (req, res) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Product not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
       });
     }
 
@@ -132,16 +148,16 @@ export const updateProduct = async (req, res) => {
       runValidators: true,
     });
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'Product updated successfully', 
-      product: updatedProduct 
+    res.status(200).json({
+      success: true,
+      message: 'Product updated successfully',
+      product: updatedProduct
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
     });
   }
 };
@@ -156,9 +172,9 @@ export const deleteProduct = async (req, res) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Product not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
       });
     }
 
@@ -168,15 +184,15 @@ export const deleteProduct = async (req, res) => {
 
     await product.remove();
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'Product deleted successfully' 
+    res.status(200).json({
+      success: true,
+      message: 'Product deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
     });
   }
 };
