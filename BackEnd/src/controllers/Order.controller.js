@@ -10,13 +10,13 @@ const OrderController = {
      */
     createOrder: async (req, res) => {
         try {
-            const { user, products, totalPrice, shippingAddress, paymentMethod } = req.body;
+            const { products, totalPrice, shippingAddress, paymentMethod } = req.body;
 
             if (!user || !products || !totalPrice || !shippingAddress || !paymentMethod) {
                 return res.status(400).json({ success: false, message: 'All fields are required' });
             }
 
-            const newOrder = new Order({ user, products, totalPrice, shippingAddress, paymentMethod });
+            const newOrder = new Order({ user: req.user._id, products, totalPrice, shippingAddress, paymentMethod });
             const savedOrder = await newOrder.save();
 
             res.status(201).json({ success: true, data: savedOrder });
@@ -84,7 +84,7 @@ const OrderController = {
     /** 
      * @desc    Update an order
      * @route   PUT /api/orders/:id
-     * @access  Public
+     * @access  Private (User must be the owner)
      */
     updateOrder: async (req, res) => {
         try {
@@ -97,6 +97,11 @@ const OrderController = {
                 return res.status(404).json({ success: false, message: 'Order not found' });
             }
 
+            // Check if the logged-in user is the owner of the order
+            if (order.user.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ success: false, message: 'You are not authorized to update this order' });
+            }
+
             if (order.status !== 'pending') {
                 return res.status(403).json({ success: false, message: `Cannot update. Your order is currently ${order.status}. Please contact admin for more info.` });
             }
@@ -105,6 +110,7 @@ const OrderController = {
             order.totalPrice = totalPrice || order.totalPrice;
             order.shippingAddress = shippingAddress || order.shippingAddress;
             if (status) order.status = status;
+
             const updatedOrder = await order.save();
 
             res.status(200).json({ success: true, data: updatedOrder });
@@ -116,7 +122,7 @@ const OrderController = {
     /** 
      * @desc    Delete an order by ID
      * @route   DELETE /api/orders/:id
-     * @access  Public
+     * @access  Private (User must be the owner)
      */
     deleteOrder: async (req, res) => {
         try {
@@ -126,6 +132,11 @@ const OrderController = {
 
             if (!order) {
                 return res.status(404).json({ success: false, message: 'Order not found' });
+            }
+
+            // Check if the logged-in user is the owner of the order
+            if (order.user.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ success: false, message: 'You are not authorized to delete this order' });
             }
 
             if (order.status !== 'pending') {
