@@ -43,7 +43,7 @@ const orderSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['credit_card', 'paypal', 'cash_on_delivery'],
+    enum: ['Razorpay', 'cash_on_delivery'],
     required: true,
   },
   createdAt: {
