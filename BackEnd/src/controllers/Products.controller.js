@@ -44,7 +44,8 @@ export const createProduct = async (req, res) => {
 // @access  Public
 // @desc    Get all products
 // @route   GET /api/products
-// @access  Public
+// GET /api/products?page=1&limit=10&category=electronics&minPrice=100&maxPrice=1000
+
 export const getAllProducts = async (req, res) => {
   try {
     const { page = 1, limit = 10, sort = '-createdAt', category, minPrice, maxPrice } = req.query;

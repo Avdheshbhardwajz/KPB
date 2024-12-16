@@ -1,5 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
-
+import mongoose, { Schema } from 'mongoose';
 
 const paymentSchema = new Schema({
   order: {
@@ -9,7 +8,7 @@ const paymentSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['credit_card', 'paypal', 'cash_on_delivery'],
+    enum: ['razorpay', 'cash_on_delivery'],
     required: true,
   },
   paymentStatus: {
