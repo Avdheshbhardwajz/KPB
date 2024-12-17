@@ -47,12 +47,6 @@ const userSchema = new Schema(
             required: true,
             trim: true,
         },
-        orders: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Order', // Reference to the Order model
-            },
-        ],
     },
     {
         timestamps: true,

@@ -10,13 +10,13 @@ const OrderController = {
      */
     createOrder: async (req, res) => {
         try {
-            const { products, totalPrice, shippingAddress, paymentMethod } = req.body;
+            const { products, totalPrice, shippingAddress, paymentMethod, paymentStatus } = req.body;
 
-            if (!user || !products || !totalPrice || !shippingAddress || !paymentMethod) {
+            if (!products || !totalPrice || !shippingAddress || !paymentMethod) {
                 return res.status(400).json({ success: false, message: 'All fields are required' });
             }
 
-            const newOrder = new Order({ user: req.user._id, products, totalPrice, shippingAddress, paymentMethod });
+            const newOrder = new Order({ user: req.user._id, products, paymentStatus, totalPrice, shippingAddress, paymentMethod });
             const savedOrder = await newOrder.save();
 
             res.status(201).json({ success: true, data: savedOrder });
@@ -53,7 +53,7 @@ const OrderController = {
     getOrderById: async (req, res) => {
         try {
             const { id } = req.params;
-            const order = await Order.findById(id).populate('user').populate('products.product');
+            const order = await Order.findById(id).populate('products.product');
 
             if (!order) {
                 return res.status(404).json({ success: false, message: 'Order not found' });
@@ -82,6 +82,41 @@ const OrderController = {
     },
 
     /** 
+     * @desc    Get all orders (Admin only) with filters, pagination, and sorting
+     * @route   GET /api/admin/orders
+     * @access  Private (Admin only)
+     */
+    getAllOrders: async (req, res) => {
+        try {
+            const { page = 1, limit = 10, paymentMethod, status } = req.query;
+            const filter = {};
+
+            if (paymentMethod) filter.paymentMethod = paymentMethod;
+            if (status) filter.status = status;
+
+            const orders = await Order.find(filter)
+                .skip((page - 1) * limit)
+                .limit(Number(limit))
+                .populate('user', 'name email')
+                .populate('products.product');
+
+            const totalOrders = await Order.countDocuments(filter);
+
+            res.status(200).json({
+                success: true,
+                data: orders,
+                pagination: {
+                    totalOrders,
+                    currentPage: Number(page),
+                    totalPages: Math.ceil(totalOrders / limit)
+                }
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+        }
+    },
+
+    /** 
      * @desc    Update an order
      * @route   PUT /api/orders/:id
      * @access  Private (User must be the owner)
@@ -97,7 +132,6 @@ const OrderController = {
                 return res.status(404).json({ success: false, message: 'Order not found' });
             }
 
-            // Check if the logged-in user is the owner of the order
             if (order.user.toString() !== req.user._id.toString()) {
                 return res.status(403).json({ success: false, message: 'You are not authorized to update this order' });
             }
@@ -118,6 +152,31 @@ const OrderController = {
             res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
     },
+    /** 
+     * @desc    Update an order
+     * @route   PUT /api/orders/:id
+     * @access  Private (User must be the owner)
+     */
+    AdminupdateOrder: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+
+            const order = await Order.findById(id);
+
+            if (!order) {
+                return res.status(404).json({ success: false, message: 'Order not found' });
+            }
+
+            if (status) order.status = status;
+
+            const updatedOrder = await order.save();
+
+            res.status(200).json({ success: true, data: updatedOrder });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+        }
+    },
 
     /** 
      * @desc    Delete an order by ID
@@ -127,14 +186,12 @@ const OrderController = {
     deleteOrder: async (req, res) => {
         try {
             const { id } = req.params;
-
             const order = await Order.findById(id);
 
             if (!order) {
                 return res.status(404).json({ success: false, message: 'Order not found' });
             }
 
-            // Check if the logged-in user is the owner of the order
             if (order.user.toString() !== req.user._id.toString()) {
                 return res.status(403).json({ success: false, message: 'You are not authorized to delete this order' });
             }
@@ -144,7 +201,6 @@ const OrderController = {
             }
 
             await Order.findByIdAndDelete(id);
-
             res.status(200).json({ success: true, message: 'Order deleted successfully' });
         } catch (error) {
             res.status(500).json({ success: false, message: 'Server Error', error: error.message });

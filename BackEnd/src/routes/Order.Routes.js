@@ -23,4 +23,10 @@ router.put('/:id', verifyjwt, OrderController.updateOrder);
 // Route to delete an order by ID
 router.delete('/:id', verifyjwt, OrderController.deleteOrder);
 
+// Route to getAllOrders AdminupdateOrder
+router.get('/admin/getallorders', verifyAdminjwt, OrderController.getAllOrders);
+
+// Route to getAllOrders AdminupdateOrder
+router.put('/admin/:id', verifyAdminjwt, OrderController.AdminupdateOrder);
+
 export default router;
