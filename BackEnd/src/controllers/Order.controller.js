@@ -1,5 +1,5 @@
 import express from 'express';
-import Order from '../models/Order.model';
+import Order from '../models/Order.model.js';
 
 // Controller for handling order operations
 const OrderController = {

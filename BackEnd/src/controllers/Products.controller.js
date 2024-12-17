@@ -1,6 +1,5 @@
-import Product from '../models/Product.js';
+import Product from '../models/Products.model.js';
 import { uploadOnCloudinary, deletefromcloudinary } from '../utils/cloudinary.js';
-
 export const createProduct = async (req, res) => {
   try {
     const { name, description, price, category, stock } = req.body;
@@ -11,9 +10,10 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ message: 'Please fill in all required fields.' });
     }
 
-    // Upload each file to Cloudinary and get the image URLs
+    // Upload each file to Cloudinary and extract the secure_url from the response
     const imageUploadPromises = files.map(file => uploadOnCloudinary(file.path));
-    const imageUrls = await Promise.all(imageUploadPromises);
+    const uploadResults = await Promise.all(imageUploadPromises);
+    const imageUrls = uploadResults.map(result => result.secure_url); // Extract only secure_url
 
     // Create new product
     const newProduct = await Product.create({
@@ -21,7 +21,7 @@ export const createProduct = async (req, res) => {
       description,
       price,
       category,
-      images: imageUrls,
+      images: imageUrls, // This is now an array of strings (URLs)
       stock,
     });
 
@@ -38,7 +38,6 @@ export const createProduct = async (req, res) => {
     });
   }
 };
-
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Public
@@ -140,9 +139,12 @@ export const updateProduct = async (req, res) => {
 
     // Upload new images to Cloudinary
     const imageUploadPromises = files.map(file => uploadOnCloudinary(file.path));
-    const imageUrls = await Promise.all(imageUploadPromises);
+    const imageResponses = await Promise.all(imageUploadPromises);
 
-    updatedData.images = imageUrls;
+    // Extract only the URLs from the Cloudinary response
+    const imageUrls = imageResponses.map(response => response.secure_url);
+
+    updatedData.images = imageUrls; // Store only the URLs, not the entire response
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, {
       new: true,
@@ -163,6 +165,7 @@ export const updateProduct = async (req, res) => {
   }
 };
 
+
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
 // @access  Private (Admin only)
@@ -170,7 +173,8 @@ export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findById(id);
+    // Find and delete the product in one go
+    const product = await Product.findByIdAndDelete(id);
 
     if (!product) {
       return res.status(404).json({
@@ -182,8 +186,6 @@ export const deleteProduct = async (req, res) => {
     // Delete all images from Cloudinary
     const deletePromises = product.images.map(url => deletefromcloudinary(url));
     await Promise.all(deletePromises);
-
-    await product.remove();
 
     res.status(200).json({
       success: true,

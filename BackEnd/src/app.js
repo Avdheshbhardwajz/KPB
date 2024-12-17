@@ -34,11 +34,22 @@ app.use(express.static("Public"))
 app.use(cookieParser())
 
 // routes import 
-import userRouter from "./routes/user.routes.js"
-import AdminRouter from "./routes/Admin.user.routes.js"
+import userRouter from "./routes/user.routes.js";
+import AdminRouter from "./routes/Admin.user.routes.js";
+import CartRouter from "./routes/Cart.Routes.js";
+import CategoryRouter from "./routes/Category.routes.js";
+import OrderRouter from "./routes/Order.Routes.js";
+// import PaymentRouter from "./routes/Payment.Routes.js";
+import ProductsRouter from "./routes/Products.Routes.js";
 
 // routes declaration
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/Admin', AdminRouter);
+app.use('/api/v1/Cart', CartRouter);
+app.use('/api/v1/Category', CategoryRouter);
+app.use('/api/v1/Order', OrderRouter);
+//Waiting for the razorpay id etc 
+//app.use('/api/v1/Payment', PaymentRouter);
+app.use('/api/v1/Products', ProductsRouter);
 
 export { app }

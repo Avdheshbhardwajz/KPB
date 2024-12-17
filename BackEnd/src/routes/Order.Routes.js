@@ -1,5 +1,5 @@
 import express from 'express';
-import OrderController from '../controllers/OrderController.js';
+import OrderController from '../controllers/Order.controller.js';
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 import { verifyAdminjwt } from '../middlewares/AdminAuth.middleware.js';
 

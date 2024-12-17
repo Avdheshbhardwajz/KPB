@@ -1,4 +1,4 @@
-import Cart from "../models/Cart.model";
+import Cart from "../models/Cart.model.js";
 
 const CartController = {
 
@@ -24,13 +24,14 @@ const CartController = {
     getCartById: async (req, res) => {
         try {
             const { id } = req.params;
-            const cart = await Cart.findById(id).populate('user').populate('products.product');
+            const cart = await Cart.findById(id).populate('products.product');
 
             if (!cart) {
                 return res.status(404).json({ success: false, message: 'Cart not found' });
             }
-
-            if (cart.user.toString() !== req.user._id) {
+            //console.log(cart.user._id)
+            //console.log(req.user._id)
+            if (!cart.user._id.equals(req.user._id)) {
                 return res.status(403).json({ success: false, message: 'Access denied. You do not own this cart.' });
             }
 
@@ -49,8 +50,7 @@ const CartController = {
         try {
             const userId = req.user._id;
             const { products } = req.body;
-
-            if (!products) {
+            if (!products || !Array.isArray(products) || products.length === 0) {
                 return res.status(400).json({ success: false, message: 'Products are required' });
             }
 
@@ -78,11 +78,13 @@ const CartController = {
                 return res.status(404).json({ success: false, message: 'Cart not found' });
             }
 
-            if (cart.user.toString() !== req.user._id) {
+            if (!cart.user._id.equals(req.user._id)) {
                 return res.status(403).json({ success: false, message: 'Access denied. You do not own this cart.' });
             }
 
-            cart.products = products || cart.products;
+            if (products && Array.isArray(products)) {
+                cart.products = products;
+            }
             cart.updatedAt = Date.now();
 
             const updatedCart = await cart.save();
@@ -106,12 +108,12 @@ const CartController = {
                 return res.status(404).json({ success: false, message: 'Cart not found' });
             }
 
-            if (cart.user.toString() !== req.user._id) {
+            if (!cart.user._id.equals(req.user._id)) {
                 return res.status(403).json({ success: false, message: 'Access denied. You do not own this cart.' });
             }
 
-            await cart.remove();
-            res.status(200).json({ success: true, message: 'Cart deleted successfully', data: cart });
+            const deletecart = await Cart.findByIdAndDelete(id);
+            res.status(200).json({ success: true, message: 'Cart deleted successfully', data: deletecart });
         } catch (error) {
             res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
@@ -132,7 +134,7 @@ const CartController = {
                 return res.status(404).json({ success: false, message: 'Cart not found' });
             }
 
-            if (cart.user.toString() !== req.user._id) {
+            if (!cart.user._id.equals(req.user._id)) {
                 return res.status(403).json({ success: false, message: 'Access denied. You do not own this cart.' });
             }
 
@@ -159,7 +161,7 @@ const CartController = {
                 return res.status(404).json({ success: false, message: 'Cart not found' });
             }
 
-            if (cart.user.toString() !== req.user._id) {
+            if (!cart.user._id.equals(req.user._id)) {
                 return res.status(403).json({ success: false, message: 'Access denied. You do not own this cart.' });
             }
 
@@ -171,10 +173,15 @@ const CartController = {
             res.status(500).json({ success: false, message: 'Server Error', error: error.message });
         }
     },
-    
+
+    /** 
+     * @desc    Get the cart for a logged-in user
+     * @route   GET /api/carts/user
+     * @access  Private (Only the logged-in user)
+     */
     getCartByUser: async (req, res) => {
         try {
-            const userId = req.user._id; // Assuming req.user contains the authenticated user info
+            const userId = req.user._id;
             const cart = await Cart.findOne({ user: userId }).populate('user').populate('products.product');
 
             if (!cart) {

@@ -1,5 +1,5 @@
 import express from 'express';
-import CartController from '../controllers/Cart.controller'; // Assuming the controller is in the controllers folder
+import CartController from '../controllers/Cart.controller.js'; // Assuming the controller is in the controllers folder
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 import { verifyAdminjwt } from '../middlewares/AdminAuth.middleware.js';
 
@@ -17,8 +17,8 @@ router.put('/:id', verifyjwt, CartController.updateCart);
 
 router.delete('/:id', verifyjwt, CartController.deleteCart);
 
-router.post('/:id/products', verifyjwt, CartController.addProductToCart);
+router.post('/:id/addproducts', verifyjwt, CartController.addProductToCart);
 
-router.delete('/:id/products/:productId', verifyjwt, CartController.removeProductFromCart);
+router.delete('/:id/deleteproducts/:productId', verifyjwt, CartController.removeProductFromCart);
 
 export default router;

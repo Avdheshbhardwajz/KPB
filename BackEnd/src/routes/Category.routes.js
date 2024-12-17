@@ -1,5 +1,5 @@
 import express from 'express';
-import CategoryController from '../controllers/CategoryController';
+import CategoryController from '../controllers/Category.controller.js';
 import { verifyAdminjwt } from '../middlewares/AdminAuth.middleware.js';
 
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import paymentController from '../controllers/paymentController.js';  // Import the payment controller
+import paymentController from '../controllers/Payment.contorller.js';  // Import the payment controller
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 import { verifyAdminjwt } from '../middlewares/AdminAuth.middleware.js';
 
